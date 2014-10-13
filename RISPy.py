@@ -32,8 +32,7 @@ credentialsbytes = credentials.encode('utf8')
 base64EncodedCredentials = base64.encodebytes(credentialsbytes)
  
 
-
-
+''' *** FUNCTIONS *** '''
 
 def selectCmDeviceExt(selectItems, nodeName='', selectBy='Name', deviceClass='Phone', model='255', status ='Any', protocol='Any', downloadStatus='Any'):
 	'''
@@ -112,17 +111,6 @@ def selectCmDeviceExt(selectItems, nodeName='', selectBy='Name', deviceClass='Ph
 		selectCmDeviceExtSOAP += '<ns0:item>'
 		selectCmDeviceExtSOAP += '<ns0:Item>' + item + '</ns0:Item>'
 		selectCmDeviceExtSOAP += '</ns0:item>'
-
-	# selectCmDeviceExtSOAP += '<ns0:item>'
-	# selectCmDeviceExtSOAP += '<ns0:Item>CSFEE</ns0:Item>'
-	# selectCmDeviceExtSOAP += '</ns0:item>'
-	# selectCmDeviceExtSOAP += '<ns0:item>'
-	# selectCmDeviceExtSOAP += '<ns0:Item>SEPF84F5794022A</ns0:Item>'
-	# selectCmDeviceExtSOAP += '</ns0:item>'
-	# selectCmDeviceExtSOAP += '<ns0:item>'
-	# selectCmDeviceExtSOAP += '<ns0:Item>SEP001E136BF578</ns0:Item>'
-	# selectCmDeviceExtSOAP += '</ns0:item>'
-
 	selectCmDeviceExtSOAP += '</ns0:SelectItems>'
 	selectCmDeviceExtSOAP += '<ns0:Protocol>' + protocol + '</ns0:Protocol>'
 	selectCmDeviceExtSOAP += '<ns0:DownloadStatus>' + downloadStatus + '</ns0:DownloadStatus>'
@@ -140,7 +128,6 @@ def selectCmDeviceExt(selectItems, nodeName='', selectBy='Name', deviceClass='Ph
 		req.add_header('Authorization', 'Basic ' + base64EncodedCredentials.decode('utf-8')[:-1]) # the [:-1] removes the \n -- there is almost certainly a better way to do this.
 		f = urllib.request.urlopen(req)
 		xmlResponse = f.read().decode('utf-8')
-		#return xmlResponse
 		return format_ris_response(xmlResponse)
 	except urllib.error.HTTPError as e:
 	    print(e.headers['www-authenticate'])
@@ -152,7 +139,6 @@ def format_ris_response(xmlResponse):
 	ns1 = "{http://schemas.cisco.com/ast/soap}"
 	root = etree.fromstring(xmlResponse)
 	totalDevicesFound = root.findall('.//{0}TotalDevicesFound'.format(ns1))[0].text
-	#print(totalDevicesFound)
 	if int(totalDevicesFound) > 0:
 		cmNodes = root.findall('.//{0}CmNodes'.format(ns1))
 		for node in cmNodes:
@@ -169,28 +155,13 @@ def format_ris_response(xmlResponse):
 						for thing in detail:
 							deviceDict[thing.tag.split(ns1)[1]] = thing.text
 						devicesArray.append(deviceDict)
-				#print(devicesArray)
 					serverDict['devices'] = devicesArray
-					#print(json.dumps(serverDict, indent=1))
 					result.append(serverDict)
-
-	#print(json.dumps(result, indent=1))
-
-
-
-
-
-							#print(thing.tag.split(ns1)[1], thing.text)
-							#print(thing.tag.split(ns1,1)[1], thing.text)
-						#print(detail.text)
-						# name = detail.find('{0}Name'.format(ns1)).text
-						# activeLoadID = detail.find('{0}ActiveLoadID'.format(ns1)).text
-						# print(name, activeLoadID)
 	return(result)
 
 if __name__ == '__main__':
 	print('Please use as a module and use help(RISPy) to see usage instructions.')
-	print(selectCmDeviceExt(["CSFEE","SEPF84F5794022A","SEP001E136BF578"]))
+
 
 
 
