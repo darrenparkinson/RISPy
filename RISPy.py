@@ -9,7 +9,7 @@ import xml.etree.ElementTree as etree
 import json
 
 ''' Specifies what variables/functions are available '''
-__all__ = ["cmserver", "cmport", "username", "password", "SOAPAction", "selectCmDeviceExt"]
+__all__ = ["cmserver", "cmport", "username", "password", "SOAPAction", "selectCmDeviceExt", "getServerInfo"]
 
 ''' *** SET UP DEBUG *** '''
 DEBUG = False
@@ -23,6 +23,7 @@ cmserver = '172.16.7.41'
 cmport = '8443'
 RIS70wsdl = 'https://' + cmserver + ':' + cmport + '/realtimeservice2/services/RISService70?wsdl'
 RIS70location = 'https://' + cmserver + ':' + cmport + '/realtimeservice2/services/RISService70'
+RISlocation = 'https://' + cmserver + ':' + cmport + '/realtimeservice/services/RisPort'
 username = 'risuser'
 password = 'password'
 SOAPAction = 'CUCM:DB ver=9.1'
@@ -158,6 +159,64 @@ def format_ris_response(xmlResponse):
 					serverDict['devices'] = devicesArray
 					result.append(serverDict)
 	return(result)
+
+def format_getServerInfoResponse(xmlResponse):
+	result = []
+	ns1 = {'http://schemas.cisco.com/ast/soap'}
+	root = etree.fromstring(xmlResponse)
+	serverInfo = root.findall('.//ServerInfo')
+	for item in serverInfo:
+		servers = item.findall('item')
+		for server in servers:
+			serverDict = {}
+			for thing in server:
+				serverDict[thing.tag] = thing.text
+			#print(serverDict)
+			result.append(serverDict)
+	return(result)
+	
+
+def getServerInfo(serverList):
+	''' SOAP Envelope '''
+	getServerInfoSOAP = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://schemas.cisco.com/ast/soap">'
+	getServerInfoSOAP += '<soapenv:Header/>'
+	getServerInfoSOAP += '<soapenv:Body>'
+	getServerInfoSOAP += '<soap:getServerInfo>'
+	getServerInfoSOAP += '<soap:Hosts>'
+	for server in serverList:
+		getServerInfoSOAP += '<soap:Name>'
+		getServerInfoSOAP += server
+		getServerInfoSOAP += '</soap:Name>'
+	# getServerInfoSOAP += '             <!--Zero or more repetitions:-->'
+	# getServerInfoSOAP += '             <soap:Name>ciscart21</soap:Name>'
+	getServerInfoSOAP += '</soap:Hosts>'
+	getServerInfoSOAP += '</soap:getServerInfo>'
+	getServerInfoSOAP += '</soapenv:Body>'
+	getServerInfoSOAP += '</soapenv:Envelope>'
+
+	''' Set again in case they've been changed '''
+	RISlocation = 'https://' + cmserver + ':' + cmport + '/realtimeservice/services/RisPort'
+	credentials = username + ':' + password
+	credentialsbytes = credentials.encode('utf8')
+	base64EncodedCredentials = base64.encodebytes(credentialsbytes)
+
+	''' Perform the request '''
+	binary_data = getServerInfoSOAP.encode('utf8')
+
+	try:
+		req = urllib.request.Request(RISlocation, binary_data)
+		req.add_header('Content-Type', 'text/xml; charset=utf-8')
+		req.add_header('SOAPAction', SOAPAction)
+		req.add_header('Authorization', 'Basic ' + base64EncodedCredentials.decode('utf-8')[:-1]) # the [:-1] removes the \n -- there is almost certainly a better way to do this.
+		f = urllib.request.urlopen(req)
+		xmlResponse = f.read().decode('utf-8')
+		#return xmlResponse
+		return format_getServerInfoResponse(xmlResponse)
+	except urllib.error.HTTPError as e:
+	    print(e.headers['www-authenticate'])
+	    print(e)
+
+	#return(result)
 
 if __name__ == '__main__':
 	print('Please use as a module and use help(RISPy) to see usage instructions.')

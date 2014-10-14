@@ -3,7 +3,7 @@ RISPy
 
 Implementation of the RIS interface to Cisco Unified Communications Manager.
 
-This is the first draft of this library which only implements the 'selectCmDeviceExt' at present.
+This is the first draft of this library which only implements the 'selectCmDeviceExt' and 'getServerInfo' at present.
 
 ## Example Usage
 
@@ -12,12 +12,18 @@ import RISPy
 RISPy.username = 'someuser'
 RISPy.password = 'somepassword'
 RISPy.cmserver = '172.16.7.41'
+
 result = RISPy.selectCmDeviceExt(["CSFAA","SEP123456789012","CSFBB"], deviceClass='Any')
 
 for item in result:
     for device in item['devices']:
         print(device['Name'], device['ActiveLoadID'])
 
+
+servers = RISPy.getServerInfo(['172.16.7.41','172.16.7.110'])
+
+for server in servers:
+    print(server['HostName'], server['os-version'], server['call-manager-version'])
 ```
 
 You can also get help and more information by using `>>> help(RISPy)` 
@@ -38,6 +44,33 @@ The following shows the available variables and their default settings:
 ## Functions
 
 The following shows the implemented functions of the RIS interface at this time:
+
+### getServerInfo
+
+>Exports information from the Server Information SOAP interface
+
+```
+getServerInfo(serverList)
+```
+
+_Parameters_:
+
+* serverList - a list of server names or IP Addresses i.e. ['172.16.7.41','172.16.7.10']
+
+_Returns_:
+
+* Array of servers with the following values:
+    - HostName
+    - call-manager-version
+    - os-name
+    - os-version
+    - os-arch
+    - Active-versions
+    - InActive-versions
+    - java-runtime-version
+    - java-vm-vendor
+
+_N.B. Inconsistent naming and capitalisation reflects the original Cisco names_
 
 ### selectCmDeviceExt
 
@@ -90,4 +123,6 @@ _Parameters_:
     * Failed
     * Unknown
 
-Returns   : Array of devices by server with details.
+_Returns_:
+
+* Array of devices by server with details.
