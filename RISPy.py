@@ -177,6 +177,26 @@ def format_getServerInfoResponse(xmlResponse):
 	
 
 def getServerInfo(serverList):
+	'''
+	Exports information from the Server Information SOAP interface
+
+	Parameters: 
+		serverList - a list of server names or IP Addresses i.e. ['172.16.7.41','172.16.7.10']
+
+	Returns:
+		Array of server dictionaries with the following values:
+		    - HostName
+		    - call-manager-version
+		    - os-name
+		    - os-version
+		    - os-arch
+		    - Active-versions
+		    - InActive-versions
+		    - java-runtime-version
+		    - java-vm-vendor
+
+	'''
+
 	''' SOAP Envelope '''
 	getServerInfoSOAP = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://schemas.cisco.com/ast/soap">'
 	getServerInfoSOAP += '<soapenv:Header/>'
