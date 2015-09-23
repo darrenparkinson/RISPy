@@ -7,6 +7,7 @@ import base64
 import urllib.request
 import xml.etree.ElementTree as etree
 import json
+import ssl
 
 ''' Specifies what variables/functions are available '''
 __all__ = ["cmserver", "cmport", "username", "password", "SOAPAction", "selectCmDeviceExt", "getServerInfo"]
