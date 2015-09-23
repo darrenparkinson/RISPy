@@ -38,8 +38,11 @@ The following shows the available variables and their default settings:
     cmserver = ''
     password = 'risuser'
     username = 'rispassword'
+    ignoreSSL = False
 
 ```
+
+If certificate verification fails, you can force the script to ignore SSL verification.  Clearly this is not recommended, however you can set `ignoreSSL = True` if you want to, but you are responsible for doing so.
 
 ## Functions
 

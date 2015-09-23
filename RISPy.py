@@ -10,7 +10,7 @@ import json
 import ssl
 
 ''' Specifies what variables/functions are available '''
-__all__ = ["cmserver", "cmport", "username", "password", "SOAPAction", "selectCmDeviceExt", "getServerInfo"]
+__all__ = ["cmserver", "cmport", "username", "password", "SOAPAction", "selectCmDeviceExt", "getServerInfo", "ignoreSSL"]
 
 ''' *** SET UP DEBUG *** '''
 DEBUG = False
@@ -28,6 +28,7 @@ RISlocation = 'https://' + cmserver + ':' + cmport + '/realtimeservice/services/
 username = 'risuser'
 password = 'password'
 SOAPAction = 'CUCM:DB ver=9.1'
+ignoreSSL = False
 
 credentials = username + ':' + password
 credentialsbytes = credentials.encode('utf8')
@@ -128,12 +129,26 @@ def selectCmDeviceExt(selectItems, nodeName='', selectBy='Name', deviceClass='Ph
 		req.add_header('Content-Type', 'text/xml; charset=utf-8')
 		req.add_header('SOAPAction', SOAPAction)
 		req.add_header('Authorization', 'Basic ' + base64EncodedCredentials.decode('utf-8')[:-1]) # the [:-1] removes the \n -- there is almost certainly a better way to do this.
-		f = urllib.request.urlopen(req)
+		if ignoreSSL == False:
+			f = urllib.request.urlopen(req)
+		else:
+			gcontext = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+			f = urllib.request.urlopen(req, context=gcontext)
 		xmlResponse = f.read().decode('utf-8')
 		return format_ris_response(xmlResponse)
 	except urllib.error.HTTPError as e:
-	    print(e.headers['www-authenticate'])
-	    print(e)
+		print("\nWe got an HTTP Error, possibly authentication?")
+		#print(e.headers['www-authenticate'])
+		print(e, "\n")
+	except urllib.error.URLError as ue:
+		print("\nGot a URL Error. If it is certificate related, try forcing the verification (not recommended) by setting ignoreSSL to True.")
+		print(ue, "\n")
+	except ssl.SSLError as se:
+		print("\nWe got an SSL Certificate Verification error.  To force verification (not recommended), try setting ignoreSSL to True.")
+		print(se, "\n")
+	except:
+		print("\nGot some unknown error")
+
 
 def format_ris_response(xmlResponse):
 	result = []
@@ -229,13 +244,27 @@ def getServerInfo(serverList):
 		req.add_header('Content-Type', 'text/xml; charset=utf-8')
 		req.add_header('SOAPAction', SOAPAction)
 		req.add_header('Authorization', 'Basic ' + base64EncodedCredentials.decode('utf-8')[:-1]) # the [:-1] removes the \n -- there is almost certainly a better way to do this.
-		f = urllib.request.urlopen(req)
+		if ignoreSSL == False:
+			f = urllib.request.urlopen(req)
+		else:
+			gcontext = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+			f = urllib.request.urlopen(req, context=gcontext)
+		#f = urllib.request.urlopen(req)
 		xmlResponse = f.read().decode('utf-8')
 		#return xmlResponse
 		return format_getServerInfoResponse(xmlResponse)
 	except urllib.error.HTTPError as e:
-	    print(e.headers['www-authenticate'])
-	    print(e)
+		print("\nWe got an HTTP Error, possibly authentication?")
+		#print(e.headers['www-authenticate'])
+		print(e, "\n")
+	except urllib.error.URLError as ue:
+		print("\nGot a URL Error. If it is certificate related, try forcing the verification (not recommended) by setting ignoreSSL to True.")
+		print(ue, "\n")
+	except ssl.SSLError as se:
+		print("\nWe got an SSL Certificate Verification error.  To force verification (not recommended), try setting ignoreSSL to True.")
+		print(se, "\n")
+	except:
+		print("\nGot some unknown error")
 
 	#return(result)
 
