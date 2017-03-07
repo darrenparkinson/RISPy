@@ -170,7 +170,13 @@ def format_ris_response(xmlResponse):
 					for detail in cmDeviceItems:
 						deviceDict = {}
 						for thing in detail:
-							deviceDict[thing.tag.split(ns1)[1]] = thing.text
+							if thing.tag.split(ns1)[1]=='IPAddress':
+								if (len(thing)>0):
+									deviceDict[thing.tag.split(ns1)[1]]=thing[0][0].text
+								else:
+									deviceDict[thing.tag.split(ns1)[1]] = thing.text
+							else:
+								deviceDict[thing.tag.split(ns1)[1]] = thing.text
 						devicesArray.append(deviceDict)
 					serverDict['devices'] = devicesArray
 					result.append(serverDict)
